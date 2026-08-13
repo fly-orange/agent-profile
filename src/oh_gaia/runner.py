@@ -83,18 +83,33 @@ def doctor(config: AppConfig) -> None:
     run(["docker", "info"], capture=True)
     payload = check_vllm(config)
     print(f"vLLM OK: {[item.get('id') for item in payload.get('data', [])]}")
-    if not os.getenv("HF_TOKEN"):
+    if config.dataset_path:
+        validate_local_dataset(config)
+        print(f"Local GAIA dataset OK: {config.dataset_path}")
+    elif not os.getenv("HF_TOKEN"):
         print("WARNING: HF_TOKEN is missing; GAIA download may fail.")
     if not os.getenv("TAVILY_API_KEY"):
         print("WARNING: TAVILY_API_KEY is missing; official GAIA runner will fail.")
     print("Environment checks passed.")
 
 
+def validate_local_dataset(config: AppConfig) -> None:
+    root = config.dataset_path
+    if root is None:
+        return
+    metadata = root / "2023" / config.gaia.split / "metadata.jsonl"
+    if not metadata.is_file():
+        raise RuntimeError(
+            f"Local GAIA metadata not found: {metadata}. "
+            "dataset_path must contain 2023/<split>/metadata.jsonl"
+        )
+
+
 def build_infer_command(config: AppConfig, *, limit: int | None = None) -> list[str]:
     gaia = config.gaia
     llm_path = write_llm_config(config)
     command = [
-        "uv", "run", "python", "-m", "benchmarks.gaia.run_infer",
+        "uv", "run", "python", str((config.root / "src" / "oh_gaia" / "gaia_entrypoint.py").resolve()),
         str(llm_path), "--level", gaia.level, "--split", gaia.split,
         "--max-iterations", str(gaia.max_iterations), "--critic", gaia.critic,
         "--output-dir", str(config.output_dir), "--num-workers", str(gaia.num_workers),
@@ -115,6 +130,9 @@ def run_gaia(config: AppConfig, *, limit: int | None = None) -> None:
     env = os.environ.copy()
     env.setdefault("RICH_LOGGING", "1")
     env.setdefault("HF_TOKEN", os.getenv("HF_TOKEN", ""))
+    if config.dataset_path:
+        validate_local_dataset(config)
+        env["OH_GAIA_DATASET_PATH"] = str(config.dataset_path)
     run(build_infer_command(config, limit=limit), cwd=config.upstream_dir, env=env)
 
 
@@ -163,4 +181,3 @@ def summarize(config: AppConfig, output: Path | None = None) -> dict[str, Any]:
     (report_dir / "latest.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return report
-

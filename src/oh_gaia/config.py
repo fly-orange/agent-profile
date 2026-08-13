@@ -24,6 +24,7 @@ class VLLMConfig:
 
 @dataclass(frozen=True)
 class GaiaConfig:
+    dataset_path: str = ""
     level: str = "2023_level1"
     split: str = "validation"
     max_iterations: int = 30
@@ -63,6 +64,13 @@ class AppConfig:
     def llm_config_path(self) -> Path:
         return self.root / ".generated" / "vllm.json"
 
+    @property
+    def dataset_path(self) -> Path | None:
+        if not self.gaia.dataset_path:
+            return None
+        path = Path(self.gaia.dataset_path).expanduser()
+        return path.resolve() if path.is_absolute() else (self.root / path).resolve()
+
 
 def _construct(cls: type[Any], values: dict[str, Any]) -> Any:
     try:
@@ -89,4 +97,3 @@ def load_config(path: Path) -> AppConfig:
     if config.gaia.num_workers < 1 or config.gaia.max_iterations < 1:
         raise ValueError("num_workers and max_iterations must be positive")
     return config
-

@@ -14,6 +14,7 @@ base_url = "http://host.docker.internal:8000/v1"
 model = "local-model"
 
 [gaia]
+dataset_path = ""
 level = "2023_level1"
 split = "validation"
 max_iterations = 20
@@ -51,9 +52,15 @@ class RunnerTests(unittest.TestCase):
 
     def test_command_contains_core_options(self):
         command = build_infer_command(self.config, limit=1)
-        self.assertIn("benchmarks.gaia.run_infer", command)
+        self.assertTrue(command[3].endswith("gaia_entrypoint.py"))
         self.assertEqual(command[command.index("--n-limit") + 1], "1")
         self.assertEqual(command[command.index("--num-workers") + 1], "2")
+
+    def test_local_dataset_path_is_resolved(self):
+        text = CONFIG.replace('dataset_path = ""', 'dataset_path = "data/GAIA"')
+        (self.root / "config.toml").write_text(text, encoding="utf-8")
+        config = load_config(self.root / "config.toml")
+        self.assertEqual(config.dataset_path, (self.root / "data" / "GAIA").resolve())
 
     def test_summary(self):
         out = self.config.output_dir / "run" / "output.jsonl"
@@ -71,4 +78,3 @@ class RunnerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -11,6 +11,9 @@ max_output_tokens = 8192
 timeout_seconds = 600
 
 [gaia]
+# Local GAIA root containing 2023/<split>/metadata.jsonl. Leave empty to use
+# the official Hugging Face loader.
+dataset_path = "/home/l00948631/.cache/modelscope/datasets/gaia-benchmark-GAIA"
 level = "2023_level1"
 split = "validation"
 max_iterations = 30
@@ -28,4 +31,3 @@ repository = "https://github.com/OpenHands/benchmarks.git"
 # Pin this to a commit SHA for paper-quality reproducibility.
 revision = "main"
 directory = ".upstream/openhands-benchmarks"
-
