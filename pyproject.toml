@@ -1,0 +1,20 @@
+[project]
+name = "openhands-gaia-vllm-runner"
+version = "0.1.0"
+description = "Thin, reproducible runner for OpenHands GAIA against a local vLLM server"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+oh-gaia = "oh_gaia.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/oh_gaia"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
