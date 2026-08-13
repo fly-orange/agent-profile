@@ -92,6 +92,26 @@ Docker daemon/运行配置中增加 `host.docker.internal:host-gateway`。同时
 
 ## 配置建议
 
+### 使用本地 GAIA 数据集
+
+如果数据已经下载到本机，可在 `config.toml` 中设置数据集根目录：
+
+```toml
+[gaia]
+dataset_path = "/home/l00948631/.cache/modelscope/datasets/gaia-benchmark-GAIA"
+```
+
+该目录必须包含 `2023/validation/metadata.jsonl`（运行 test split 时还应包含
+`2023/test/metadata.jsonl`）及对应附件。设置后 runner 会直接读取本地数据并跳过
+Hugging Face 的 `load_dataset` 和 `snapshot_download`，因此不再需要 `HF_TOKEN`。
+
+可先检查目录：
+
+```bash
+find /home/l00948631/.cache/modelscope/datasets/gaia-benchmark-GAIA \
+  -maxdepth 3 -name metadata.jsonl -print
+```
+
 - 首次先运行 Level 1、`limit = 1`、`num_workers = 1`。
 - 确认工具调用正确后逐步提高到 2、4、8 workers。
 - `max_iterations = 30` 是合理起点；复杂任务可提高，但成本明显增加。
@@ -123,4 +143,3 @@ uv run --with pytest pytest
 
 GAIA 会让 Agent 执行模型生成的命令并访问互联网。不要把 Docker socket、宿主机
 敏感目录或生产凭据挂进 Workspace。应使用单独测试机或受控网络运行大规模评测。
-
