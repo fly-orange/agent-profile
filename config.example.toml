@@ -1,0 +1,31 @@
+[vllm]
+# URL reachable from this controller, used by health checks.
+health_url = "http://127.0.0.1:8000/v1"
+# URL reachable from OpenHands containers. On Linux use the host IP or
+# host.docker.internal after adding a host-gateway mapping to Docker.
+base_url = "http://host.docker.internal:8000/v1"
+model = "Qwen/Qwen3-32B"
+api_key_env = "VLLM_API_KEY"
+temperature = 0.0
+max_output_tokens = 8192
+timeout_seconds = 600
+
+[gaia]
+level = "2023_level1"
+split = "validation"
+max_iterations = 30
+num_workers = 1
+limit = 3
+critic = "pass"
+workspace = "docker"
+tool_preset = "default"
+output_dir = "outputs/gaia"
+note = "local-vllm"
+enable_condenser = true
+
+[upstream]
+repository = "https://github.com/OpenHands/benchmarks.git"
+# Pin this to a commit SHA for paper-quality reproducibility.
+revision = "main"
+directory = ".upstream/openhands-benchmarks"
+
