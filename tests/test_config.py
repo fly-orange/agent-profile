@@ -4,7 +4,12 @@ import unittest
 from pathlib import Path
 
 from oh_gaia.config import load_config
-from oh_gaia.runner import build_infer_command, summarize, write_llm_config
+from oh_gaia.runner import (
+    build_infer_command,
+    summarize,
+    validate_local_dataset,
+    write_llm_config,
+)
 
 
 CONFIG = """
@@ -61,6 +66,14 @@ class RunnerTests(unittest.TestCase):
         (self.root / "config.toml").write_text(text, encoding="utf-8")
         config = load_config(self.root / "config.toml")
         self.assertEqual(config.dataset_path, (self.root / "data" / "GAIA").resolve())
+
+    def test_local_parquet_metadata_is_accepted(self):
+        text = CONFIG.replace('dataset_path = ""', 'dataset_path = "data/GAIA"')
+        (self.root / "config.toml").write_text(text, encoding="utf-8")
+        metadata = self.root / "data" / "GAIA" / "2023" / "validation" / "metadata.parquet"
+        metadata.parent.mkdir(parents=True)
+        metadata.touch()
+        validate_local_dataset(load_config(self.root / "config.toml"))
 
     def test_summary(self):
         out = self.config.output_dir / "run" / "output.jsonl"

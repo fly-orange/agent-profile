@@ -22,17 +22,23 @@ def _install_local_dataset_adapter(module: Any, dataset_root: Path) -> None:
                 raise ValueError(f"Unsupported GAIA level: {level}") from exc
 
         for split in ("validation", "test"):
-            metadata = dataset_root / "2023" / split / "metadata.jsonl"
-            if not metadata.is_file():
+            split_dir = dataset_root / "2023" / split
+            jsonl = split_dir / "metadata.jsonl"
+            parquet = split_dir / "metadata.parquet"
+            if jsonl.is_file():
+                frame = module.pd.read_json(jsonl, lines=True)
+            elif parquet.is_file():
+                frame = module.pd.read_parquet(parquet)
+            else:
                 continue
-            frame = module.pd.read_json(metadata, lines=True)
             if wanted_level is not None:
                 level_values = frame["Level"].astype(str).str.extract(r"(\d+)", expand=False)
                 frame = frame[level_values == str(wanted_level)]
             result[split] = Dataset.from_pandas(frame, preserve_index=False)
         if not result:
             raise FileNotFoundError(
-                f"No metadata.jsonl found below {dataset_root / '2023'}"
+                "No metadata.jsonl or metadata.parquet found below "
+                f"{dataset_root / '2023'}"
             )
         return result
 

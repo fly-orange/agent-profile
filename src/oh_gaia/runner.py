@@ -97,11 +97,12 @@ def validate_local_dataset(config: AppConfig) -> None:
     root = config.dataset_path
     if root is None:
         return
-    metadata = root / "2023" / config.gaia.split / "metadata.jsonl"
-    if not metadata.is_file():
+    split_dir = root / "2023" / config.gaia.split
+    candidates = (split_dir / "metadata.jsonl", split_dir / "metadata.parquet")
+    if not any(path.is_file() for path in candidates):
         raise RuntimeError(
-            f"Local GAIA metadata not found: {metadata}. "
-            "dataset_path must contain 2023/<split>/metadata.jsonl"
+            f"Local GAIA metadata not found below: {split_dir}. "
+            "Expected metadata.jsonl or metadata.parquet."
         )
 
 

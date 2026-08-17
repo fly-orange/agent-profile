@@ -41,6 +41,9 @@ vllm serve Qwen/Qwen3-32B \
 
 ## 快速开始
 
+Linux 服务器首次部署和单样本跑通流程请参阅：
+[Linux 上跑通第一个 OpenHands GAIA 测试](docs/FIRST_GAIA_RUN_ZH.md)。
+
 ```bash
 cd openhands-gaia-vllm
 cp config.example.toml config.toml
@@ -101,8 +104,8 @@ Docker daemon/运行配置中增加 `host.docker.internal:host-gateway`。同时
 dataset_path = "/home/l00948631/.cache/modelscope/datasets/gaia-benchmark-GAIA"
 ```
 
-该目录必须包含 `2023/validation/metadata.jsonl`（运行 test split 时还应包含
-`2023/test/metadata.jsonl`）及对应附件。设置后 runner 会直接读取本地数据并跳过
+该目录必须包含 `2023/validation/metadata.jsonl` 或 `metadata.parquet`（运行 test
+split 时，`2023/test/` 下也应包含其中一种格式）及对应附件。设置后 runner 会直接读取本地数据并跳过
 Hugging Face 的 `load_dataset` 和 `snapshot_download`，因此不再需要 `HF_TOKEN`。
 
 可先检查目录：
