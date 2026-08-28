@@ -36,6 +36,7 @@ class GaiaConfig:
     output_dir: str = "outputs/gaia"
     note: str = "local-vllm"
     enable_condenser: bool = True
+    select_file: str = ""
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,13 @@ class AppConfig:
     @property
     def output_dir(self) -> Path:
         return (self.root / self.gaia.output_dir).resolve()
+
+    @property
+    def select_file(self) -> Path | None:
+        if not self.gaia.select_file:
+            return None
+        path = Path(self.gaia.select_file).expanduser()
+        return path.resolve() if path.is_absolute() else (self.root / path).resolve()
 
     @property
     def llm_config_path(self) -> Path:
@@ -96,4 +104,6 @@ def load_config(path: Path) -> AppConfig:
         raise ValueError("gaia.workspace must be 'docker' or 'remote'")
     if config.gaia.num_workers < 1 or config.gaia.max_iterations < 1:
         raise ValueError("num_workers and max_iterations must be positive")
+    if config.select_file and not config.select_file.is_file():
+        raise ValueError(f"GAIA select file not found: {config.select_file}")
     return config
